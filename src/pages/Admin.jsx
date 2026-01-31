@@ -2,8 +2,9 @@ import { BarChart2, Book, CheckCircle, Clock, Download, Eye, FileText, Plus, Set
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
+import Swal from "sweetalert2";
 import { useApp } from "../context/AppContext";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "../firebase";
 
 const tabs = [
@@ -105,28 +106,146 @@ export default function Admin() {
     }
   };
   
-  // Placeholder functions for missing functionality
-  const deleteSubject = (id) => {
-    toast.error("Delete subject functionality would be implemented here");
+  // Delete subject function
+  const deleteSubject = async (id) => {
+    // Show premium floating glass card alert
+    const result = await Swal.fire({
+      titleHtml: '<div class="text-sm font-bold">Delete Subject?</div>',
+      text: "This action cannot be undone.",
+      icon: undefined,
+      showCancelButton: true,
+      confirmButtonText: "Yes, Delete",
+      cancelButtonText: "No",
+      buttonsStyling: false,
+      background: "#121212",
+      color: "#FFFFFF",
+      width: "280px",
+      padding: "0.8rem",
+      customClass: {
+        popup: "border border-[#4e4d4d] rounded-[15px] grid",
+        title: "text-sm font-bold",
+        content: "text-xs",
+        actions: "flex justify-center gap-2 mt-2",
+        confirmButton: "bg-[#ef4444] hover:bg-[#dc2626] px-4 py-1.5 rounded-xl text-xs font-medium text-white",
+        cancelButton: "bg-[#2a2a2a] hover:bg-[#3a3a3a] px-4 py-1.5 rounded-xl text-xs font-medium text-white"
+      }
+    });
+    
+    if (!result.isConfirmed) {
+      return;
+    }
+    
+    try {
+      await deleteDoc(doc(db, "subjects", id));
+      toast.success("Subject deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting subject:", error);
+      toast.error("Error deleting subject: " + error.message);
+    }
   };
   
   const promoteUser = async (userId) => {
-    try {
-      await updateDoc(doc(db, "users", userId), { role: "admin" });
-      toast.success("User promoted to admin successfully!");
-    } catch (error) {
-      console.error("Error promoting user:", error);
-      toast.error("Error promoting user: " + error.message);
+    // Show compact confirmation popup
+    const result = await Swal.fire({
+      title: 'Promote to Admin?',
+      text: "This user will gain admin privileges.",
+      icon: undefined,
+      showCancelButton: true,
+      confirmButtonText: "Yes, Promote",
+      cancelButtonText: "Cancel",
+      buttonsStyling: false,
+      background: "#121212",
+      color: "#FFFFFF",
+      width: "280px",
+      padding: "0.8rem",
+      customClass: {
+        popup: "border border-[#4e4d4d] rounded-[15px] shadow-2xl",
+        title: "text-sm font-bold pt-2",
+        htmlContainer: "text-[10px] text-gray-400 opacity-80",
+        actions: "flex justify-center gap-3 mt-4 mb-2",
+        confirmButton: "bg-purple-500 hover:bg-purple-600 px-5 py-2 rounded-[10px] text-[11px] font-bold text-white transition-all",
+        cancelButton: "bg-[#2a2a2a] hover:bg-[#3a3a3a] px-5 py-2 rounded-[10px] text-[11px] font-bold text-white transition-all"
+      }
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await updateDoc(doc(db, "users", userId), { role: "admin" });
+        toast.success("User promoted to admin successfully!");
+      } catch (error) {
+        console.error("Error promoting user:", error);
+        toast.error("Error promoting user: " + error.message);
+      }
     }
   };
   
   const demoteUser = async (userId) => {
-    try {
-      await updateDoc(doc(db, "users", userId), { role: "student" });
-      toast.success("User demoted to student successfully!");
-    } catch (error) {
-      console.error("Error demoting user:", error);
-      toast.error("Error demoting user: " + error.message);
+    // Show compact confirmation popup
+    const result = await Swal.fire({
+      title: 'Demote to Student?',
+      text: "This user will lose admin privileges.",
+      icon: undefined,
+      showCancelButton: true,
+      confirmButtonText: "Yes, Demote",
+      cancelButtonText: "Cancel",
+      buttonsStyling: false,
+      background: "#121212",
+      color: "#FFFFFF",
+      width: "280px",
+      padding: "0.8rem",
+      customClass: {
+        popup: "border border-[#4e4d4d] rounded-[15px] shadow-2xl",
+        title: "text-sm font-bold pt-2",
+        htmlContainer: "text-[10px] text-gray-400 opacity-80",
+        actions: "flex justify-center gap-3 mt-4 mb-2",
+        confirmButton: "bg-amber-500 hover:bg-amber-600 px-5 py-2 rounded-[10px] text-[11px] font-bold text-white transition-all",
+        cancelButton: "bg-[#2a2a2a] hover:bg-[#3a3a3a] px-5 py-2 rounded-[10px] text-[11px] font-bold text-white transition-all"
+      }
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await updateDoc(doc(db, "users", userId), { role: "student" });
+        toast.success("User demoted to student successfully!");
+      } catch (error) {
+        console.error("Error demoting user:", error);
+        toast.error("Error demoting user: " + error.message);
+      }
+    }
+  };
+  
+  const banUser = async (userId) => {
+    // Show compact confirmation popup
+    const result = await Swal.fire({
+      title: 'Ban User?',
+      text: "This user will be banned from the platform.",
+      icon: undefined,
+      showCancelButton: true,
+      confirmButtonText: "Yes, Ban",
+      cancelButtonText: "Cancel",
+      buttonsStyling: false,
+      background: "#121212",
+      color: "#FFFFFF",
+      width: "280px",
+      padding: "0.8rem",
+      customClass: {
+        popup: "border border-[#4e4d4d] rounded-[15px] shadow-2xl",
+        title: "text-sm font-bold pt-2",
+        htmlContainer: "text-[10px] text-gray-400 opacity-80",
+        actions: "flex justify-center gap-3 mt-4 mb-2",
+        confirmButton: "bg-rose-500 hover:bg-rose-600 px-5 py-2 rounded-[10px] text-[11px] font-bold text-white transition-all",
+        cancelButton: "bg-[#2a2a2a] hover:bg-[#3a3a3a] px-5 py-2 rounded-[10px] text-[11px] font-bold text-white transition-all"
+      }
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await updateDoc(doc(db, "users", userId), { isBanned: true });
+        toast.success("User banned successfully!");
+      } catch (error) {
+        console.error("Error banning user:", error);
+        toast.error("Error banning user: " + error.message);
+      }
     }
   };
 
