@@ -36,6 +36,9 @@ export const AppProvider = ({ children }) => {
   // Loading state
   const [loading, setLoading] = useState(true);
   
+  // User role state (separate from users array for real-time updates)
+  const [userRole, setUserRole] = useState(null);
+  
   // Real-time listeners for materials and subjects
   useEffect(() => {
     const unsubscribeMaterials = onSnapshot(
@@ -126,20 +129,47 @@ export const AppProvider = ({ children }) => {
             role: "student", // Default role
             createdAt: new Date()
           });
+          setUserRole("student");
+        } else {
+          // Set role from existing document
+          const userData = userDocSnap.data();
+          setUserRole(userData.role || "student");
         }
         
         // Update user state
         setUser(currentUser);
       } else {
         setUser(null);
+        setUserRole(null);
       }
     });
     
     return () => unsubscribeAuth();
   }, []);
   
+  // Real-time role listener for current user
+  useEffect(() => {
+    if (!user?.uid) return;
+    
+    const userDocRef = doc(db, "users", user.uid);
+    const unsubscribeRole = onSnapshot(userDocRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const userData = docSnap.data();
+        setUserRole(userData.role || "student");
+        // Also update the users array for consistency
+        setUsers(prevUsers => 
+          prevUsers.map(u => u.uid === user.uid ? {...u, role: userData.role} : u)
+        );
+      }
+    }, (error) => {
+      console.error("Error listening to user role: ", error);
+    });
+    
+    return () => unsubscribeRole();
+  }, [user?.uid]);
+  
   // RBAC - Role-Based Access Control
-  const isAdmin = user?.email === "rishiuttamsahu@gmail.com" || users.find(u => u.uid === user?.uid)?.role === "admin";
+  const isAdmin = user?.email === "rishiuttamsahu@gmail.com" || userRole === "admin";
   
   // Derived state - Calculate statistics dynamically
   const stats = useMemo(() => {
@@ -338,6 +368,7 @@ export const AppProvider = ({ children }) => {
     semesters,
     users,
     user, // Add user to context
+    userRole,
     stats,
     loading,
     

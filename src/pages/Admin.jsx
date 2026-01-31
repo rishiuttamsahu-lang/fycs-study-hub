@@ -46,7 +46,7 @@ export default function Admin() {
     getSubjectsBySemester
   } = useApp();
   
-  const ADMIN_EMAIL = "rishiuttamsahu@gmail.com";
+  // Admin access is now protected by ProtectedRoute component
   
   // Temporary function to make Piyush admin
   const makePiyushAdmin = async () => {
@@ -75,17 +75,9 @@ export default function Admin() {
     }
   };
   
-  useEffect(() => {
-    // If loaded and user is NOT the admin, kick them out
-    if (!loading && user?.email !== ADMIN_EMAIL) {
-      navigate("/");
-    }
-  }, [user, loading, navigate]);
+  // Admin access is now protected by ProtectedRoute component
   
-  // Prevent render if user is not admin
-  if (!loading && user?.email !== ADMIN_EMAIL) {
-    return null;
-  }
+  // Admin access is now protected by ProtectedRoute component
   
   // Show loading state while data is being fetched
   if (loading) {

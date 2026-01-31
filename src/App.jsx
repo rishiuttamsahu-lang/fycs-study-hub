@@ -3,6 +3,7 @@ import { Toaster } from "react-hot-toast";
 
 import { useApp } from "./context/AppContext";
 import Navbar from "./components/Navbar";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Admin from "./pages/Admin";
 import Home from "./pages/Home";
 import Library from "./pages/Library";
@@ -58,8 +59,8 @@ function App() {
           <Route path="/semester/:semId" element={<Subjects />} />
           <Route path="/semester/:semId/:subjectId" element={<Materials />} />
           <Route path="/library" element={<Library />} />
-          <Route path="/upload" element={<Upload />} />
-          <Route path="/admin" element={<Admin />} />
+          <Route path="/upload" element={<ProtectedRoute requiredRole="admin"><Upload /></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><Admin /></ProtectedRoute>} />
           <Route path="/profile" element={<Profile />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
