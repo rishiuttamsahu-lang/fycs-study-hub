@@ -21,7 +21,7 @@ export default function Upload() {
   }
 
   const types = useMemo(
-    () => ["Notes", "PYQs", "Practicals", "Assignments"],
+    () => ["Notes", "Practicals", "IMP", "Assignment"],
     []
   );
 
@@ -95,7 +95,7 @@ export default function Upload() {
       <div className="mb-6">
         <h2 className="text-xl font-bold">Upload</h2>
         <p className="text-white/55 text-xs mt-1">
-          Share notes, PYQs, assignments, and more.
+          Share notes, practicals, important materials, and assignments.
         </p>
       </div>
 

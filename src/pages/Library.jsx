@@ -1,4 +1,4 @@
-import { FileText, Search, BookOpen, GraduationCap } from "lucide-react";
+import { FileText, Search, BookOpen, GraduationCap, Download } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useApp } from "../context/AppContext";
 
@@ -8,6 +8,30 @@ export default function Library() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSemester, setSelectedSemester] = useState("");
   const [selectedType, setSelectedType] = useState("");
+  
+  // Helper function to convert Google Drive view links to direct download links
+  const convertToDownloadLink = (viewLink) => {
+    if (!viewLink) return viewLink;
+    
+    // Handle different Google Drive URL formats
+    if (viewLink.includes("drive.google.com/file/d/")) {
+      // Extract file ID from the URL
+      const fileIdMatch = viewLink.match(/\/file\/d\/([^\/]+)/);
+      if (fileIdMatch && fileIdMatch[1]) {
+        return `https://drive.google.com/uc?export=download&id=${fileIdMatch[1]}`;
+      }
+    } else if (viewLink.includes("drive.google.com/open?id=")) {
+      // Extract file ID from the legacy URL format
+      const urlObj = new URL(viewLink);
+      const fileId = urlObj.searchParams.get("id");
+      if (fileId) {
+        return `https://drive.google.com/uc?export=download&id=${fileId}`;
+      }
+    }
+    
+    // If it's not a Google Drive link, return the original link
+    return viewLink;
+  };
 
   // Get unique types from materials
   const allTypes = useMemo(() => {
@@ -53,7 +77,7 @@ export default function Library() {
           Study Library
         </h1>
         <p className="text-white/55 text-xs mt-1">
-          Browse all notes, videos, and PYQs
+          Browse all notes, practicals, important materials, and assignments
         </p>
       </div>
 
@@ -127,7 +151,11 @@ export default function Library() {
                   <div className="flex-1">
                     <div className="flex items-start gap-3">
                       <div className="mt-1">
-                        <FileText size={20} className="text-white/85" />
+                        {material.type === 'Notes' ? <FileText size={20} className="text-blue-400" /> :
+                         material.type === 'Practicals' ? <Code size={20} className="text-green-400" /> :
+                         material.type === 'IMP' ? <Star size={20} className="text-yellow-400" /> :
+                         material.type === 'Assignment' ? <Edit3 size={20} className="text-purple-400" /> :
+                         <FileText size={20} className="text-white/85" />}
                       </div>
                       <div>
                         <h3 className="font-bold text-white/90 text-lg">{material.title}</h3>
@@ -152,6 +180,19 @@ export default function Library() {
                       <FileText size={16} />
                       View
                     </a>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // Convert view link to download link
+                        const downloadUrl = convertToDownloadLink(material.link);
+                        // Open download link in new tab
+                        window.open(downloadUrl, "_blank", "noopener,noreferrer");
+                      }}
+                      className="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 transition-colors"
+                      title="Download"
+                    >
+                      <Download size={16} />
+                    </button>
                   </div>
                 </div>
               </div>

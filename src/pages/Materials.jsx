@@ -1,4 +1,4 @@
-import { ChevronLeft, ExternalLink, FileText } from "lucide-react";
+import { ChevronLeft, ExternalLink, FileText, Download } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useApp } from "../context/AppContext";
@@ -10,7 +10,31 @@ export default function Materials() {
   const { getSemesterById, getSubjectById, getMaterialsBySubject, incrementView } = useApp();
   const semester = getSemesterById(semId);
   const subject = getSubjectById(subjectId);
-  const [typeTab, setTypeTab] = useState("Notes"); // Notes | PYQ
+  const [typeTab, setTypeTab] = useState("Notes"); // Notes | Practicals | IMP | Assignment
+  
+  // Helper function to convert Google Drive view links to direct download links
+  const convertToDownloadLink = (viewLink) => {
+    if (!viewLink) return viewLink;
+    
+    // Handle different Google Drive URL formats
+    if (viewLink.includes("drive.google.com/file/d/")) {
+      // Extract file ID from the URL
+      const fileIdMatch = viewLink.match(/\/file\/d\/([^\/]+)/);
+      if (fileIdMatch && fileIdMatch[1]) {
+        return `https://drive.google.com/uc?export=download&id=${fileIdMatch[1]}`;
+      }
+    } else if (viewLink.includes("drive.google.com/open?id=")) {
+      // Extract file ID from the legacy URL format
+      const urlObj = new URL(viewLink);
+      const fileId = urlObj.searchParams.get("id");
+      if (fileId) {
+        return `https://drive.google.com/uc?export=download&id=${fileId}`;
+      }
+    }
+    
+    // If it's not a Google Drive link, return the original link
+    return viewLink;
+  };
 
   const approvedForSubject = useMemo(
     () => getMaterialsBySubject(subjectId),
@@ -61,10 +85,10 @@ export default function Materials() {
         <div className="w-10" />
       </div>
 
-      {/* Type Tabs (Notes / PYQ) */}
+      {/* Type Tabs (Notes / Practicals / IMP / Assignment) */}
       <div className="glass-card p-2 mb-4 rounded-full">
         <div className="flex gap-2">
-          {["Notes", "PYQ"].map((t) => {
+          {["Notes", "Practicals", "IMP", "Assignment"].map((t) => {
             const active = typeTab === t;
             return (
               <button
@@ -76,7 +100,7 @@ export default function Materials() {
                   active ? "bg-[#FFD700] text-black" : "text-white/70 hover:bg-white/5",
                 ].join(" ")}
               >
-                {t === "PYQ" ? "PYQs" : "Notes"}
+                {t}
               </button>
             );
           })}
@@ -88,7 +112,11 @@ export default function Materials() {
           <div key={m.id} className="glass-card p-4">
             <div className="flex items-start gap-3">
               <div className="h-10 w-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
-                <FileText size={18} className="text-white/85" />
+                {m.type === 'Notes' ? <FileText size={18} className="text-blue-400" /> :
+                 m.type === 'Practicals' ? <Code size={18} className="text-green-400" /> :
+                 m.type === 'IMP' ? <Star size={18} className="text-yellow-400" /> :
+                 m.type === 'Assignment' ? <Edit3 size={18} className="text-purple-400" /> :
+                 <FileText size={18} className="text-white/85" />}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
@@ -100,7 +128,7 @@ export default function Materials() {
               </div>
             </div>
 
-            <div className="mt-4 flex items-center justify-between gap-3">
+            <div className="mt-4 flex items-center justify-between gap-2">
               <button
                 type="button"
                 onClick={() => {
@@ -113,7 +141,20 @@ export default function Materials() {
               >
                 View <ExternalLink size={16} />
               </button>
-              <div className="text-[11px] text-white/55 text-right min-w-[84px]">
+              <button
+                type="button"
+                onClick={() => {
+                  // Convert view link to download link
+                  const downloadUrl = convertToDownloadLink(m.link);
+                  // Open download link in new tab
+                  window.open(downloadUrl, "_blank", "noopener,noreferrer");
+                }}
+                className="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 transition-colors"
+                title="Download"
+              >
+                <Download size={16} />
+              </button>
+              <div className="text-[11px] text-white/55 ml-2 min-w-[84px]">
                 <div>👁 {m.views}</div>
                 {"downloads" in m ? <div>⬇ {m.downloads}</div> : null}
               </div>
@@ -123,7 +164,7 @@ export default function Materials() {
 
         {!filtered.length ? (
           <div className="glass-card p-4 text-center text-white/60 text-sm">
-            No {typeTab === "PYQ" ? "PYQs" : "Notes"} found for this subject.
+            No {typeTab} found for this subject.
           </div>
         ) : null}
       </div>

@@ -1,4 +1,4 @@
-import { Filter, Search as SearchIcon, FileText } from "lucide-react";
+import { Code, Edit3, FileText, Filter, Search as SearchIcon, Star } from "lucide-react";
 import { useMemo, useState } from "react";
 import SubjectCard from "../components/SubjectCard";
 
@@ -22,10 +22,10 @@ export default function Search() {
         isLive: true,
       },
       {
-        id: "maths-pyq",
-        title: "PYQ 2024 - Mathematics I",
+        id: "maths-imp",
+        title: "Important Questions - Mathematics I",
         subtitle: "Semester 1 • Mathematics I",
-        tags: ["PYQs", "2024", "Final Exam"],
+        tags: ["IMP", "Important", "Exam"],
         isLive: true,
       },
       {
@@ -85,7 +85,13 @@ export default function Search() {
         {filtered.map((m) => (
           <SubjectCard
             key={m.id}
-            icon={<FileText size={18} className="text-white/90" />}
+            icon={
+              m.tags.includes('Notes') ? <FileText size={18} className="text-blue-400" /> :
+              m.tags.includes('Practicals') ? <Code size={18} className="text-green-400" /> :
+              m.tags.includes('IMP') ? <Star size={18} className="text-yellow-400" /> :
+              m.tags.includes('Assignment') ? <Edit3 size={18} className="text-purple-400" /> :
+              <FileText size={18} className="text-white/90" />
+            }
             title={m.title}
             subtitle={m.subtitle}
             tags={m.tags}

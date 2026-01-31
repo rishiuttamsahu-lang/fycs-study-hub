@@ -44,7 +44,7 @@ export default function SubjectCard({
         </div>
       </div>
 
-      <div className="mt-4 flex items-center justify-between gap-3">
+      <div className="mt-4 flex items-center justify-between gap-2">
         <button
           type="button"
           className="btn-primary flex-1 py-2 text-sm rounded-xl"

@@ -1,4 +1,4 @@
-import { BarChart2, Book, CheckCircle, Clock, Download, Eye, FileText, Plus, Settings, Shield, Trash2, Upload, User, XCircle } from "lucide-react";
+import { BarChart2, Book, CheckCircle, Clock, Code, Download, Edit3, Eye, FileText, Plus, Settings, Shield, Star, Trash2, Upload, User, XCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
@@ -415,7 +415,11 @@ export default function Admin() {
                           <div className="flex-1">
                             <div className="flex items-start gap-3">
                               <div className="mt-1">
-                                <Clock className="text-amber-400" size={18} />
+                                {material.type === 'Notes' ? <FileText className="text-blue-400" size={18} /> :
+                                 material.type === 'Practicals' ? <Code className="text-green-400" size={18} /> :
+                                 material.type === 'IMP' ? <Star className="text-yellow-400" size={18} /> :
+                                 material.type === 'Assignment' ? <Edit3 className="text-purple-400" size={18} /> :
+                                 <FileText className="text-amber-400" size={18} />}
                               </div>
                               <div>
                                 <h3 className="font-bold text-white/90">{material.title}</h3>
@@ -475,7 +479,11 @@ export default function Admin() {
                           <div className="flex-1">
                             <div className="flex items-start gap-3">
                               <div className="mt-1">
-                                <CheckCircle className="text-emerald-400" size={18} />
+                                {material.type === 'Notes' ? <FileText className="text-blue-400" size={18} /> :
+                                 material.type === 'Practicals' ? <Code className="text-green-400" size={18} /> :
+                                 material.type === 'IMP' ? <Star className="text-yellow-400" size={18} /> :
+                                 material.type === 'Assignment' ? <Edit3 className="text-purple-400" size={18} /> :
+                                 <FileText className="text-emerald-400" size={18} />}
                               </div>
                               <div>
                                 <h3 className="font-bold text-white/90">{material.title}</h3>

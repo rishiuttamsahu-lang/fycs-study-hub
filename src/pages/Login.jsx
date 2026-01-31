@@ -29,7 +29,7 @@ export default function Login() {
           
           {/* Subtext */}
           <p className="text-white/60 mb-8">
-            Your central hub for notes, PYQs, and assignments.
+            Your central hub for notes, practicals, important materials, and assignments.
           </p>
           
           {/* Login Button */}

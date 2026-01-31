@@ -1,4 +1,4 @@
-import { BookOpen, FileText, GraduationCap, Layers } from "lucide-react";
+import { BookOpen, Download, FileText, GraduationCap, Layers } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import dbLogo from "../assets/image.png";
@@ -14,6 +14,30 @@ const Home = () => {
   }));
 
   const recentApproved = getRecentMaterials(5);
+  
+  // Helper function to convert Google Drive view links to direct download links
+  const convertToDownloadLink = (viewLink) => {
+    if (!viewLink) return viewLink;
+    
+    // Handle different Google Drive URL formats
+    if (viewLink.includes("drive.google.com/file/d/")) {
+      // Extract file ID from the URL
+      const fileIdMatch = viewLink.match(/\/file\/d\/([^\/]+)/);
+      if (fileIdMatch && fileIdMatch[1]) {
+        return `https://drive.google.com/uc?export=download&id=${fileIdMatch[1]}`;
+      }
+    } else if (viewLink.includes("drive.google.com/open?id=")) {
+      // Extract file ID from the legacy URL format
+      const urlObj = new URL(viewLink);
+      const fileId = urlObj.searchParams.get("id");
+      if (fileId) {
+        return `https://drive.google.com/uc?export=download&id=${fileId}`;
+      }
+    }
+    
+    // If it's not a Google Drive link, return the original link
+    return viewLink;
+  };
 
   return (
     <div className="p-5 pt-10 max-w-md mx-auto">
@@ -82,7 +106,7 @@ const Home = () => {
                   </div>
                 </div>
 
-                <div className="mt-4 flex items-center justify-between gap-3">
+                <div className="mt-4 flex items-center justify-between gap-2">
                   <button
                     type="button"
                     className="btn-primary flex-1 py-2 text-sm rounded-xl"
@@ -90,8 +114,22 @@ const Home = () => {
                   >
                     View
                   </button>
-                  <div className="text-[11px] text-white/55 text-right min-w-[84px]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Convert view link to download link
+                      const downloadUrl = convertToDownloadLink(m.link);
+                      // Open download link in new tab
+                      window.open(downloadUrl, "_blank", "noopener,noreferrer");
+                    }}
+                    className="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 transition-colors"
+                    title="Download"
+                  >
+                    <Download size={16} />
+                  </button>
+                  <div className="text-[11px] text-white/55 ml-2 min-w-[84px]">
                     <div>👁 {m.views}</div>
+                    {"downloads" in m ? <div>⬇ {m.downloads}</div> : null}
                   </div>
                 </div>
               </div>
