@@ -1,0 +1,133 @@
+import { ChevronLeft, ExternalLink, FileText } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { useApp } from "../context/AppContext";
+
+export default function Materials() {
+  const navigate = useNavigate();
+  const { semId, subjectId } = useParams();
+
+  const { getSemesterById, getSubjectById, getMaterialsBySubject, incrementView } = useApp();
+  const semester = getSemesterById(semId);
+  const subject = getSubjectById(subjectId);
+  const [typeTab, setTypeTab] = useState("Notes"); // Notes | PYQ
+
+  const approvedForSubject = useMemo(
+    () => getMaterialsBySubject(subjectId),
+    [getMaterialsBySubject, subjectId]
+  );
+
+  const filtered = approvedForSubject.filter((m) => m.type === typeTab);
+
+  if (!semester || !subject) {
+    return (
+      <div className="p-5 pt-8 max-w-md mx-auto">
+        <div className="glass-card p-4">
+          <div className="font-semibold">Subject not found</div>
+          <div className="text-[11px] text-white/55 mt-1">
+            Please go back and choose a valid subject.
+          </div>
+          <button
+            type="button"
+            className="btn-primary w-full mt-4"
+            onClick={() => navigate(`/semester/${semId}`)}
+          >
+            Back to Subjects
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-5 pt-6 max-w-md mx-auto">
+      <div className="flex items-center justify-between mb-5">
+        <Link
+          to={`/semester/${semester.id}`}
+          className="glass-card h-10 w-10 flex items-center justify-center hover:bg-white/10 transition-colors"
+          aria-label="Back"
+          title="Back"
+        >
+          <ChevronLeft size={18} className="text-white/80" />
+        </Link>
+
+        <div className="text-center min-w-0 px-2">
+          <div className="text-[11px] text-white/55 truncate">
+            {semester.name}
+          </div>
+          <div className="font-bold truncate">{subject.name}</div>
+        </div>
+
+        <div className="w-10" />
+      </div>
+
+      {/* Type Tabs (Notes / PYQ) */}
+      <div className="glass-card p-2 mb-4 rounded-full">
+        <div className="flex gap-2">
+          {["Notes", "PYQ"].map((t) => {
+            const active = typeTab === t;
+            return (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setTypeTab(t)}
+                className={[
+                  "flex-1 rounded-full py-2 text-[11px] font-extrabold transition-colors",
+                  active ? "bg-[#FFD700] text-black" : "text-white/70 hover:bg-white/5",
+                ].join(" ")}
+              >
+                {t === "PYQ" ? "PYQs" : "Notes"}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        {filtered.map((m) => (
+          <div key={m.id} className="glass-card p-4">
+            <div className="flex items-start gap-3">
+              <div className="h-10 w-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
+                <FileText size={18} className="text-white/85" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="font-semibold text-sm truncate">{m.title}</div>
+                </div>
+                <div className="text-[11px] text-white/55 mt-1 truncate">
+                  {semester.name} • {subject.name} • {m.type}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  // Increment view count
+                  incrementView(m.id);
+                  // Open link in new tab
+                  window.open(m.link, "_blank", "noopener,noreferrer");
+                }}
+                className="btn-primary flex-1 py-2 text-sm rounded-xl flex items-center justify-center gap-2"
+              >
+                View <ExternalLink size={16} />
+              </button>
+              <div className="text-[11px] text-white/55 text-right min-w-[84px]">
+                <div>👁 {m.views}</div>
+                {"downloads" in m ? <div>⬇ {m.downloads}</div> : null}
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {!filtered.length ? (
+          <div className="glass-card p-4 text-center text-white/60 text-sm">
+            No {typeTab === "PYQ" ? "PYQs" : "Notes"} found for this subject.
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
