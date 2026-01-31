@@ -248,6 +248,41 @@ export default function Admin() {
       }
     }
   };
+  
+  const handleUnban = async (userId) => {
+    // Show compact confirmation popup
+    const result = await Swal.fire({
+      title: 'Unban User?',
+      text: "This user will be unbanned and regain access.",
+      icon: undefined,
+      showCancelButton: true,
+      confirmButtonText: "Yes, Unban",
+      cancelButtonText: "Cancel",
+      buttonsStyling: false,
+      background: "#121212",
+      color: "#FFFFFF",
+      width: "280px",
+      padding: "0.8rem",
+      customClass: {
+        popup: "border border-[#4e4d4d] rounded-[15px] shadow-2xl",
+        title: "text-sm font-bold pt-2",
+        htmlContainer: "text-[10px] text-gray-400 opacity-80",
+        actions: "flex justify-center gap-3 mt-4 mb-2",
+        confirmButton: "bg-emerald-500 hover:bg-emerald-600 px-5 py-2 rounded-[10px] text-[11px] font-bold text-white transition-all",
+        cancelButton: "bg-[#2a2a2a] hover:bg-[#3a3a3a] px-5 py-2 rounded-[10px] text-[11px] font-bold text-white transition-all"
+      }
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await updateDoc(doc(db, "users", userId), { isBanned: false });
+        toast.success("User unbanned successfully!");
+      } catch (error) {
+        console.error("Error unbanning user:", error);
+        toast.error("Error unbanning user: " + error.message);
+      }
+    }
+  };
 
   return (
     <div className="p-5 pt-8 max-w-4xl mx-auto bg-[#0a0a0a]/50 backdrop-blur-sm rounded-xl">
@@ -705,13 +740,23 @@ export default function Admin() {
                               Demote to Student
                             </button>
                           )}
-                          <button
-                            type="button"
-                            onClick={() => toast.error("Ban user functionality would be implemented here")}
-                            className="px-3 py-1 rounded-lg bg-rose-500/15 text-rose-300 text-sm font-bold hover:bg-rose-500/25 transition-colors"
-                          >
-                            Ban User
-                          </button>
+                          {user.isBanned ? (
+                            <button
+                              type="button"
+                              onClick={() => handleUnban(user.id)}
+                              className="px-3 py-1 rounded-lg bg-emerald-500/15 text-emerald-300 text-sm font-bold hover:bg-emerald-500/25 transition-colors"
+                            >
+                              Unban User
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => banUser(user.id)}
+                              className="px-3 py-1 rounded-lg bg-rose-500/15 text-rose-300 text-sm font-bold hover:bg-rose-500/25 transition-colors"
+                            >
+                              Ban User
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
