@@ -1,12 +1,20 @@
-import { User, LogOut, ExternalLink, Clock, Trash2, Settings, Download } from "lucide-react";
+import { User, LogOut, ExternalLink, Clock, Trash2, Settings, Download, X } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { useState, useEffect } from "react";
+import { updateProfile } from "firebase/auth";
+import { auth } from "../firebase";
+import { toast } from "react-hot-toast";
 
 export default function Profile() {
   const { user, login, logout } = useApp();
   const [recentHistory, setRecentHistory] = useState([]);
   const [downloadHistory, setDownloadHistory] = useState([]);
   const [activeTab, setActiveTab] = useState("recent"); // "recent" | "downloads" | "settings"
+  
+  // Edit Profile states
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [editName, setEditName] = useState(user?.displayName || "");
+  const [editPhoto, setEditPhoto] = useState(user?.photoURL || "");
   
   // Load both histories on component mount
   useEffect(() => {
@@ -35,6 +43,31 @@ export default function Profile() {
   
   // Helper to get initials
   const getInitials = (name) => name ? name.charAt(0).toUpperCase() : "U";
+  
+  // Handle profile update function
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    
+    try {
+      // Update Firebase profile
+      await updateProfile(auth.currentUser, {
+        displayName: editName,
+        photoURL: editPhoto || null
+      });
+      
+      // Close modal
+      setIsEditingProfile(false);
+      
+      // Show success toast
+      toast.success("Profile Updated Successfully!");
+      
+      // Refresh the page to reflect changes
+      window.location.reload();
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast.error("Error updating profile: " + error.message);
+    }
+  };
   
   // If user is not logged in
   if (!user) {
@@ -277,7 +310,10 @@ export default function Profile() {
             <h3 className="font-bold text-lg mb-6 text-white">Settings</h3>
             
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 bg-zinc-800/30 rounded-lg">
+              <div 
+                className="flex items-center justify-between p-3 bg-zinc-800/30 rounded-lg cursor-pointer hover:bg-zinc-800/50 transition-colors"
+                onClick={() => setIsEditingProfile(true)}
+              >
                 <div>
                   <div className="font-medium text-white">Edit Profile</div>
                   <div className="text-xs text-white/50">Update your profile information</div>
@@ -312,6 +348,68 @@ export default function Profile() {
           </div>
         )}
       </div>
+      
+      {/* Edit Profile Modal */}
+      {isEditingProfile && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="glass-card p-6 w-full max-w-md rounded-xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-white">Edit Profile</h3>
+              <button
+                type="button"
+                onClick={() => setIsEditingProfile(false)}
+                className="text-white/50 hover:text-white transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleUpdateProfile} className="space-y-4">
+              {/* Display Name */}
+              <div>
+                <label className="block text-white/70 text-sm mb-2">Display Name</label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="w-full glass-card px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white placeholder:text-white/30 focus:border-blue-500 focus:outline-none"
+                  placeholder="Enter your display name"
+                  required
+                />
+              </div>
+              
+              {/* Profile Picture URL */}
+              <div>
+                <label className="block text-white/70 text-sm mb-2">Profile Picture URL</label>
+                <input
+                  type="url"
+                  value={editPhoto}
+                  onChange={(e) => setEditPhoto(e.target.value)}
+                  className="w-full glass-card px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white placeholder:text-white/30 focus:border-blue-500 focus:outline-none"
+                  placeholder="https://example.com/image.jpg"
+                />
+              </div>
+              
+              {/* Buttons */}
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="submit"
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-colors"
+                >
+                  Save Changes
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsEditingProfile(false)}
+                  className="flex-1 glass-card py-3 text-center font-bold rounded-xl border border-white/10 text-white/70 hover:bg-white/5 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
