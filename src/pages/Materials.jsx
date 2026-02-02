@@ -41,7 +41,7 @@ export default function Materials() {
       // Extract file ID from the URL
       const fileIdMatch = viewLink.match(/\/file\/d\/([^\/]+)/);
       if (fileIdMatch && fileIdMatch[1]) {
-        return `https://drive.google.com/uc?export=download&id=${fileIdMatch[1]}`;
+        return `https://drive.google.com/uc?export=download&id=${fileIdMatch[1]}&confirm=t`;
       }
     } 
     // Pattern 2: drive.google.com/open?id={fileId} (legacy format)
@@ -50,14 +50,14 @@ export default function Materials() {
       const urlObj = new URL(viewLink);
       const fileId = urlObj.searchParams.get("id");
       if (fileId) {
-        return `https://drive.google.com/uc?export=download&id=${fileId}`;
+        return `https://drive.google.com/uc?export=download&id=${fileId}&confirm=t`;
       }
     }
     // Pattern 3: Extract ID from URL between /d/ and /view (as specified in requirements)
     else if (viewLink.includes("/d/") && viewLink.includes("/view")) {
       const fileIdMatch = viewLink.match(/\/d\/([^\/]+)\/view/);
       if (fileIdMatch && fileIdMatch[1]) {
-        return `https://drive.google.com/uc?export=download&id=${fileIdMatch[1]}`;
+        return `https://drive.google.com/uc?export=download&id=${fileIdMatch[1]}&confirm=t`;
       }
     }
     

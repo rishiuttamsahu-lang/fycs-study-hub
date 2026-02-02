@@ -113,8 +113,8 @@ export default function MaterialCard({ material, onIncrementView, convertToDownl
     // Create a temporary anchor element and trigger download
     const link = document.createElement('a');
     link.href = downloadUrl;
+    link.setAttribute('download', ''); // Hint to browser to download
     link.style.display = 'none';
-    link.setAttribute('target', '_blank');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
