@@ -1,4 +1,4 @@
-import { HashRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
@@ -93,22 +93,20 @@ function App() {
           }
         }
       />
-      <Router>
-        <div className="bg-[#0a0a0a] text-white pb-24">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/semester/:semId" element={<Subjects />} />
-          <Route path="/semester/:semId/:subjectId" element={<Materials />} />
-          <Route path="/library" element={<Library />} />
-          <Route path="/upload" element={<ProtectedRoute requiredRole="admin"><Upload /></ProtectedRoute>} />
-          <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><Admin /></ProtectedRoute>} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+      <div className="bg-[#0a0a0a] text-white pb-24">
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/semester/:semId" element={<Subjects />} />
+        <Route path="/semester/:semId/:subjectId" element={<Materials />} />
+        <Route path="/library" element={<Library />} />
+        <Route path="/upload" element={<ProtectedRoute requiredRole="admin"><Upload /></ProtectedRoute>} />
+        <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><Admin /></ProtectedRoute>} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
 
-        <Navbar />
-      </div>
-    </Router>
+      <Navbar />
+    </div>
     </>
   );
 }

@@ -1,11 +1,22 @@
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 
 export default function Login() {
-  const { login } = useApp();
+  const { login, user } = useApp();
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    if (user) {
+      navigate('/');
+    }
+  }, [user, navigate]);
   
   const handleLogin = async () => {
     try {
       await login();
+      // Navigate to home page after successful login
+      navigate('/');
     } catch (error) {
       console.error('Login error:', error);
     }
