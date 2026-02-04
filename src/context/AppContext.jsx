@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useMemo } from '
 import { db, auth, googleProvider } from '../firebase';
 import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp, getDoc, Timestamp, setDoc, query, orderBy, where } from 'firebase/firestore';
 import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
+import { toast } from 'react-hot-toast';
 
 // Create Context
 const AppContext = createContext();
@@ -111,7 +112,7 @@ export const AppProvider = ({ children }) => {
     return () => unsubscribeUsers();
   }, []);
   
-  // Authentication listener with user sync
+  // Authentication listener with user sync and ban flag
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
@@ -127,25 +128,30 @@ export const AppProvider = ({ children }) => {
             email: currentUser.email,
             photoURL: currentUser.photoURL,
             role: "student", // Default role
+            isBanned: false, // Default to not banned
             createdAt: new Date()
           });
           setUserRole("student");
+          setUser(currentUser);
         } else {
           // Set role from existing document
           const userData = userDocSnap.data();
           setUserRole(userData.role || "student");
+          setUser(currentUser);
         }
-        
-        // Update user state
-        setUser(currentUser);
       } else {
         setUser(null);
         setUserRole(null);
       }
+      
+      // Set loading to false after auth state is determined
+      if (loading) {
+        setLoading(false);
+      }
     });
     
     return () => unsubscribeAuth();
-  }, []);
+  }, [loading]);
   
   // Real-time role listener for current user
   useEffect(() => {

@@ -235,7 +235,6 @@ export default function Materials() {
           <MaterialCard 
             key={m.id} 
             material={m} 
-            onIncrementView={incrementView}
             convertToDownloadLink={convertToDownloadLink}
             getSubjectById={getSubjectById}
           />

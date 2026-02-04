@@ -1,5 +1,8 @@
 import { HashRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
+import { useEffect, useState } from "react";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "./firebase";
 
 import { useApp } from "./context/AppContext";
 import Navbar from "./components/Navbar";
@@ -12,17 +15,55 @@ import Materials from "./pages/Materials";
 import Profile from "./pages/Profile";
 import Subjects from "./pages/Subjects";
 import Upload from "./pages/Upload";
+import BannedPage from "./pages/BannedPage";
 
 function App() {
   const { user, loading } = useApp();
+  const [isUserBanned, setIsUserBanned] = useState(false);
+  const [userDataLoading, setUserDataLoading] = useState(true);
+
+  // Check if user is banned
+  useEffect(() => {
+    if (!user?.uid) {
+      setUserDataLoading(false);
+      setIsUserBanned(false);
+      return;
+    }
+    
+    const checkBanStatus = async () => {
+      try {
+        const userDocRef = doc(db, "users", user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
+          setIsUserBanned(userData.isBanned || false);
+        } else {
+          setIsUserBanned(false);
+        }
+      } catch (error) {
+        console.error("Error checking ban status:", error);
+        setIsUserBanned(false);
+      } finally {
+        setUserDataLoading(false);
+      }
+    };
+    
+    checkBanStatus();
+  }, [user?.uid]);
   
   // Loading state
-  if (loading) {
+  if (loading || userDataLoading) {
     return (
       <div className="h-screen bg-black text-white flex items-center justify-center">
         <div>Loading...</div>
       </div>
     );
+  }
+  
+  // Show banned page if user is banned
+  if (user && isUserBanned) {
+    return <BannedPage />;
   }
   
   // Not logged in

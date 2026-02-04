@@ -23,9 +23,6 @@ const ProtectedRoute = ({ children, requiredRole = null }) => {
     return <Navigate to="/" replace />;
   }
 
-  // If user is banned
-  // Note: You might want to add isBanned check here if needed
-
   return children;
 };
 

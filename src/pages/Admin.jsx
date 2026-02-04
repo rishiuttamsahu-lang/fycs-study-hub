@@ -258,14 +258,20 @@ export default function Admin() {
     }
   };
   
-  const banUser = async (userId) => {
+  const handleToggleBan = async (user) => {
+    const isCurrentlyBanned = user.isBanned || false;
+    const action = isCurrentlyBanned ? "Unban" : "Ban";
+    const confirmText = isCurrentlyBanned 
+      ? "This user will be unbanned and regain access." 
+      : "This user will be banned from the platform.";
+    
     // Show compact confirmation popup
     const result = await Swal.fire({
-      title: 'Ban User?',
-      text: "This user will be banned from the platform.",
+      title: `${action} User?`,
+      text: confirmText,
       icon: undefined,
       showCancelButton: true,
-      confirmButtonText: "Yes, Ban",
+      confirmButtonText: `Yes, ${action}`,
       cancelButtonText: "Cancel",
       buttonsStyling: false,
       background: "#121212",
@@ -277,18 +283,20 @@ export default function Admin() {
         title: "text-sm font-bold pt-2",
         htmlContainer: "text-[10px] text-gray-400 opacity-80",
         actions: "flex justify-center gap-3 mt-4 mb-2",
-        confirmButton: "bg-rose-500 hover:bg-rose-600 px-5 py-2 rounded-[10px] text-[11px] font-bold text-white transition-all",
+        confirmButton: isCurrentlyBanned 
+          ? "bg-emerald-500 hover:bg-emerald-600 px-5 py-2 rounded-[10px] text-[11px] font-bold text-white transition-all"
+          : "bg-rose-500 hover:bg-rose-600 px-5 py-2 rounded-[10px] text-[11px] font-bold text-white transition-all",
         cancelButton: "bg-[#2a2a2a] hover:bg-[#3a3a3a] px-5 py-2 rounded-[10px] text-[11px] font-bold text-white transition-all"
       }
     });
 
     if (result.isConfirmed) {
       try {
-        await updateDoc(doc(db, "users", userId), { isBanned: true });
-        toast.success("User banned successfully!");
+        await updateDoc(doc(db, "users", user.id), { isBanned: !isCurrentlyBanned });
+        toast.success(`User ${isCurrentlyBanned ? "unbanned" : "banned"} successfully!`);
       } catch (error) {
-        console.error("Error banning user:", error);
-        toast.error("Error banning user: " + error.message);
+        console.error(`Error ${action.toLowerCase()}ing user:`, error);
+        toast.error(`Error ${action.toLowerCase()}ing user: ` + error.message);
       }
     }
   };
@@ -947,25 +955,27 @@ export default function Admin() {
                                   Demote
                                 </button>
                               )}
-                              {user.isBanned ? (
-                                <button
-                                  type="button"
-                                  onClick={() => handleUnban(user.id)}
-                                  className="flex items-center gap-1 px-3 py-1 rounded-lg bg-emerald-500/15 text-emerald-300 text-sm font-bold hover:bg-emerald-500/25 transition-colors"
-                                >
-                                  <CheckCircle size={14} />
-                                  Unban
-                                </button>
-                              ) : (
-                                <button
-                                  type="button"
-                                  onClick={() => banUser(user.id)}
-                                  className="flex items-center gap-1 px-3 py-1 rounded-lg bg-rose-500/15 text-rose-300 text-sm font-bold hover:bg-rose-500/25 transition-colors"
-                                >
-                                  <XCircle size={14} />
-                                  Ban
-                                </button>
-                              )}
+                              <button
+                                type="button"
+                                onClick={() => handleToggleBan(user)}
+                                className={`flex items-center gap-1 px-3 py-1 rounded-lg text-sm font-bold transition-colors ${
+                                  user.isBanned 
+                                    ? "bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25"
+                                    : "bg-rose-500/15 text-rose-300 hover:bg-rose-500/25"
+                                }`}
+                              >
+                                {user.isBanned ? (
+                                  <>
+                                    <CheckCircle size={14} />
+                                    Unban
+                                  </>
+                                ) : (
+                                  <>
+                                    <XCircle size={14} />
+                                    Ban
+                                  </>
+                                )}
+                              </button>
                             </div>
                           </td>
                         </tr>
