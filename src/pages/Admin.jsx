@@ -77,8 +77,13 @@ export default function Admin() {
     );
   }
   
+  // Deduplicate users based on id or email
+  const uniqueUsers = (users || []).filter((user, index, self) =>
+    index === self.findIndex((t) => (t.id === user.id || t.email === user.email))
+  );
+
   // Filter users based on search term
-  const filteredUsers = (users || []).filter(user => 
+  const filteredUsers = uniqueUsers.filter(user => 
     user.email?.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
     user.displayName?.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
     user.name?.toLowerCase().includes(userSearchTerm.toLowerCase())
@@ -907,7 +912,7 @@ export default function Admin() {
                   <tbody>
                     {filteredUsers.length > 0 ? (
                       filteredUsers.map(user => (
-                        <tr key={user.id} className="border-b border-white/5 hover:bg-white/2">
+                        <tr key={`user-${user.id}`} className="border-b border-white/5 hover:bg-white/2">
                           <td className="p-4 font-medium">{user.displayName || user.name}</td>
                           <td className="p-4 text-white/70">{user.email}</td>
                           <td className="p-4">
@@ -999,7 +1004,7 @@ export default function Admin() {
               <div className="md:hidden space-y-3 p-4 max-h-[calc(100vh-300px)] overflow-y-auto scrollbar-hide">
                 {filteredUsers.length > 0 ? (
                   filteredUsers.map(user => (
-                    <div key={user.id} className="glass-card p-4">
+                    <div key={`user-${user.id}`} className="glass-card p-4">
                       <div className="flex justify-between items-start mb-3">
                         <div>
                           <h3 className="font-bold text-white text-sm">{user.displayName || user.name}</h3>
@@ -1058,7 +1063,7 @@ export default function Admin() {
                         ) : (
                           <button
                             type="button"
-                            onClick={() => banUser(user.id)}
+                            onClick={() => handleToggleBan(user)}
                             className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-rose-500/15 text-rose-300 text-xs font-bold hover:bg-rose-500/25 transition-colors"
                           >
                             <XCircle size={12} />

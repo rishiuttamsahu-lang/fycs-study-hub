@@ -1,4 +1,4 @@
-import { CloudUpload, Link2, Tag, FileText, Code, Star, Edit3, CheckCircle, XCircle } from "lucide-react";
+import { CloudUpload, Link2, Tag, FileText, Code, Star, Edit3, CheckCircle, XCircle, RefreshCw } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
@@ -8,6 +8,12 @@ export default function Upload() {
   const navigate = useNavigate();
   const { semesters, subjects, addMaterial, isAdmin, materials, user, approveMaterial, rejectMaterial } = useApp();
   const [activeTab, setActiveTab] = useState('upload'); // 'upload' or 'pending_admin'
+  
+  // Extract file ID from Google Drive URL
+  const extractFileId = (url) => {
+    const match = url.match(/\/d\/([^/]+)|id=([^&]+)/);
+    return match ? (match[1] || match[2]) : null;
+  };
   
   // Get pending materials
   const pendingMaterials = materials.filter(material => material.status === 'Pending');
@@ -50,6 +56,32 @@ export default function Upload() {
   function onChange(key) {
     return (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
   }
+  
+  // Function to convert Google Drive link to direct download link
+  const handleConvertLink = () => {
+    const link = form.driveLink.trim();
+    if (!link) {
+      toast.error("Please enter a Google Drive link first");
+      return;
+    }
+    
+    // Extract file ID using regex
+    const match = link.match(/\/d\/(.+?)\/|id=(.+?)(\&|$)/);
+    const fileId = match ? (match[1] || match[2]) : null;
+    
+    if (fileId) {
+      // Create direct download link
+      const directLink = `https://drive.google.com/uc?export=download&id=${fileId}`;
+      
+      // Update the form state with the converted link
+      setForm(prev => ({ ...prev, driveLink: directLink }));
+      
+      // Show success toast
+      toast.success("Link Converted to Direct Download");
+    } else {
+      toast.error("Invalid Google Drive link format");
+    }
+  };
 
   async function onSubmit(e) {
     e.preventDefault();
