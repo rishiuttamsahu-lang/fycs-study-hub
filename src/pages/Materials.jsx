@@ -4,6 +4,16 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { useApp } from "../context/AppContext";
 import MaterialCard from "../components/MaterialCard";
 
+const convertToDownloadLink = (link) => {
+  if (!link) return '';
+  // Extract File ID
+  const idMatch = link.match(/\/d\/(.+?)\/|id=(.+?)(\&|$)/);
+  const fileId = idMatch ? (idMatch[1] || idMatch[2]) : null;
+  
+  // Return direct download link (using docs.google.com to bypass mobile limits)
+  return fileId ? `https://docs.google.com/uc?export=download&id=${fileId}` : link;
+};
+
 export default function Materials() {
   const navigate = useNavigate();
   const { semId, subjectId } = useParams();
@@ -27,68 +37,35 @@ export default function Materials() {
   
   // Search and Sort states
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState("newest"); // newest, oldest, a-z
+  const [sortBy, setSortBy] = useState("a-z"); // a-z, newest, oldest
   const [showSortMenu, setShowSortMenu] = useState(false);
   
-  // Helper function to convert Google Drive view links to direct download links
-  const convertToDownloadLink = (viewLink) => {
-    if (!viewLink) return viewLink;
-    
-    // Handle different Google Drive URL formats
-    
-    // Pattern 1: drive.google.com/file/d/{fileId}/view
-    if (viewLink.includes("drive.google.com/file/d/")) {
-      // Extract file ID from the URL
-      const fileIdMatch = viewLink.match(/\/file\/d\/([^\/]+)/);
-      if (fileIdMatch && fileIdMatch[1]) {
-        return `https://drive.google.com/uc?export=download&id=${fileIdMatch[1]}&confirm=t`;
-      }
-    } 
-    // Pattern 2: drive.google.com/open?id={fileId} (legacy format)
-    else if (viewLink.includes("drive.google.com/open?id=")) {
-      // Extract file ID from the legacy URL format
-      const urlObj = new URL(viewLink);
-      const fileId = urlObj.searchParams.get("id");
-      if (fileId) {
-        return `https://drive.google.com/uc?export=download&id=${fileId}&confirm=t`;
-      }
-    }
-    // Pattern 3: Extract ID from URL between /d/ and /view (as specified in requirements)
-    else if (viewLink.includes("/d/") && viewLink.includes("/view")) {
-      const fileIdMatch = viewLink.match(/\/d\/([^\/]+)\/view/);
-      if (fileIdMatch && fileIdMatch[1]) {
-        return `https://drive.google.com/uc?export=download&id=${fileIdMatch[1]}&confirm=t`;
-      }
-    }
-    
-    // If it's not a Google Drive link, return the original link
-    return viewLink;
-  };
-
-  const approvedForSubject = useMemo(
-    () => getMaterialsBySubject(subjectId),
-    [getMaterialsBySubject, subjectId]
-  );
-
-  // Filter and sort logic
+  // Get materials for this subject
+  const materialsForSubject = getMaterialsBySubject(subjectId) || [];
+  
+  // Filter by type and search, then sort
+  const approvedForSubject = useMemo(() => {
+    return materialsForSubject.filter(m => m.status === 'Approved');
+  }, [materialsForSubject]);
+  
   const filteredAndSorted = useMemo(() => {
-    // First filter by type
-    let result = approvedForSubject.filter((m) => m.type === typeTab);
+    let result = [...approvedForSubject];
     
-    // Then filter by search query
+    // Filter by type
+    result = result.filter(m => m.type === typeTab);
+    
+    // Search filter
     if (searchQuery) {
-      const query = searchQuery.toLowerCase().trim();
-      result = result.filter((m) => 
-        m.title.toLowerCase().includes(query) ||
-        m.type.toLowerCase().includes(query)
+      const query = searchQuery.toLowerCase();
+      result = result.filter(m => 
+        m.title.toLowerCase().includes(query)
       );
     }
     
-    // Then sort
+    // Sort
     result.sort((a, b) => {
       switch (sortBy) {
         case "newest":
-          // Handle both Timestamp objects and regular dates
           const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || a.date || 0);
           const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || b.date || 0);
           return dateB - dateA; // Descending

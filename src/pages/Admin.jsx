@@ -29,7 +29,7 @@ export default function Admin() {
   // Search, Filter, Sort states for Approved Materials
   const [searchQuery, setSearchQuery] = useState("");
   const [filterSubject, setFilterSubject] = useState("All");
-  const [sortBy, setSortBy] = useState("title");
+  const [sortBy, setSortBy] = useState("newest");
   
   const [newSubject, setNewSubject] = useState({
     name: "",
