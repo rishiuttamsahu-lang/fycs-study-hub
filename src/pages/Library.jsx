@@ -1,4 +1,4 @@
-import { FileText, Search, BookOpen, GraduationCap, Download } from "lucide-react";
+import { FileText, Search, BookOpen, GraduationCap, Download, ArrowUpDown, Check } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useApp } from "../context/AppContext";
 import MaterialCard from "../components/MaterialCard";
@@ -9,6 +9,8 @@ export default function Library() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSemester, setSelectedSemester] = useState("");
   const [selectedType, setSelectedType] = useState("");
+  const [sortBy, setSortBy] = useState("title"); // Default to A-Z
+  const [showSortMenu, setShowSortMenu] = useState(false);
   
   // Helper function to convert Google Drive view links to direct download links
   const convertToDownloadLink = (viewLink) => {
@@ -56,9 +58,9 @@ export default function Library() {
     return Array.from(types).sort();
   }, [materials]);
 
-  // Filter materials based on search term and filters
+  // Filter and sort materials based on search term, filters, and sort option
   const filteredMaterials = useMemo(() => {
-    return materials.filter(material => {
+    let result = materials.filter(material => {
       // Filter by search term (title or subject name)
       const matchesSearch = !searchTerm || 
         material.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -79,7 +81,17 @@ export default function Library() {
 
       return matchesSearch && matchesSemester && matchesType && isApproved;
     });
-  }, [materials, searchTerm, selectedSemester, selectedType, getSubjectById]);
+
+    // Apply sorting
+    result.sort((a, b) => {
+      if (sortBy === "newest") return b.createdAt?.seconds - a.createdAt?.seconds;
+      if (sortBy === "oldest") return a.createdAt?.seconds - b.createdAt?.seconds;
+      if (sortBy === "title") return a.title.localeCompare(b.title);
+      return 0;
+    });
+
+    return result;
+  }, [materials, searchTerm, selectedSemester, selectedType, getSubjectById, sortBy]);
 
   return (
     <div className="p-5 pt-8 max-w-4xl mx-auto">
@@ -94,20 +106,63 @@ export default function Library() {
       </div>
 
       {/* Controls Section */}
-      <div className="glass-card p-4 mb-4">
+      <div className="glass-card p-4 mb-4 relative z-50">
         <div className="space-y-3">
-          {/* Search Bar */}
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search size={16} className="text-white/50" />
+          {/* Search Bar with Sort Button */}
+          <div className="flex gap-3">
+            {/* Search Input */}
+            <div className="relative flex-1">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search size={16} className="text-white/50" />
+              </div>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search materials..."
+                className="w-full glass-card pl-10 pr-4 py-2 rounded-xl border border-white/10 bg-white/5 text-white placeholder:text-white/30 focus:border-[#FFD700] focus:outline-none"
+              />
             </div>
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search materials..."
-              className="w-full glass-card pl-10 pr-4 py-2 rounded-xl border border-white/10 bg-white/5 text-white placeholder:text-white/30 focus:border-[#FFD700] focus:outline-none"
-            />
+            
+            {/* Sort Button */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowSortMenu(!showSortMenu)}
+                className="p-3 bg-zinc-800/50 rounded-xl border border-zinc-700/50 text-zinc-400 hover:text-white transition-colors"
+                title="Sort materials"
+              >
+                <ArrowUpDown size={18} />
+              </button>
+              
+              {/* Sort Dropdown Menu */}
+              {showSortMenu && (
+                <div className="absolute right-0 top-full mt-2 w-48 bg-[#09090b] border border-zinc-800 rounded-xl shadow-2xl z-50 py-1 overflow-hidden">
+                  <div className="py-2">
+                    {[
+                      { value: "newest", label: "Newest First" },
+                      { value: "oldest", label: "Oldest First" },
+                      { value: "title", label: "Title A-Z" }
+                    ].map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => {
+                          setSortBy(option.value);
+                          setShowSortMenu(false);
+                        }}
+                        className={`w-full px-4 py-3 text-left text-sm flex items-center justify-between hover:bg-zinc-800 transition-colors ${
+                          sortBy === option.value ? "text-[#FFD700] font-bold bg-zinc-800" : "text-zinc-200"
+                        }`}
+                      >
+                        {option.label}
+                        {sortBy === option.value && <Check size={16} />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Filters - Side by Side */}

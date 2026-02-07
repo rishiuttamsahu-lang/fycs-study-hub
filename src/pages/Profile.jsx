@@ -223,12 +223,12 @@ export default function Profile() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="px-1.5 py-0.5 bg-zinc-800 text-gray-300 text-[10px] rounded whitespace-nowrap">
-                            {item.subject.length > 12 ? item.subject.substring(0, 9) + "..." : item.subject}
+                            {(item.subject && item.subject.length > 12) ? item.subject.substring(0, 9) + "..." : (item.subject || "N/A")}
                           </span>
                           <span className="text-[10px] text-white/50">{item.type}</span>
                         </div>
                         <h4 className="text-sm text-white/90 truncate">
-                          {item.title.length > 40 ? item.title.substring(0, 37) + "..." : item.title}
+                          {(item.title && item.title.length > 40) ? item.title.substring(0, 37) + "..." : (item.title || "Untitled")}
                         </h4>
                         <div className="text-[10px] text-white/40 mt-1">
                           Viewed: {new Date(item.viewedAt).toLocaleDateString()}
@@ -278,12 +278,12 @@ export default function Profile() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="px-1.5 py-0.5 bg-zinc-800 text-gray-300 text-[10px] rounded whitespace-nowrap">
-                            {item.subject.length > 12 ? item.subject.substring(0, 9) + "..." : item.subject}
+                            {(item.subject && item.subject.length > 12) ? item.subject.substring(0, 9) + "..." : (item.subject || "N/A")}
                           </span>
                           <span className="text-[10px] text-white/50">{item.type}</span>
                         </div>
                         <h4 className="text-sm text-white/90 truncate">
-                          {item.title.length > 40 ? item.title.substring(0, 37) + "..." : item.title}
+                          {(item.title && item.title.length > 40) ? item.title.substring(0, 37) + "..." : (item.title || "Untitled")}
                         </h4>
                         <div className="text-[10px] text-white/40 mt-1">
                           Downloaded: {new Date(item.downloadedAt).toLocaleDateString()}
