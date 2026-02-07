@@ -147,7 +147,7 @@ export default function Profile() {
         </div>
 
         {/* TABBED NAVIGATION - Scrollable */}
-        <div className="flex gap-4 mb-4 border-b border-zinc-800 overflow-x-auto scrollbar-hide pr-4">
+        <div className="flex gap-4 mb-4 border-b border-zinc-800 overflow-x-auto whitespace-nowrap no-scrollbar pr-4">
           <button
             type="button"
             onClick={() => setActiveTab("recent")}
@@ -159,7 +159,7 @@ export default function Profile() {
           >
             <div className="flex items-center gap-2">
               <Clock size={14} />
-              Recently Viewed
+              Recent
             </div>
           </button>
           
@@ -174,7 +174,7 @@ export default function Profile() {
           >
             <div className="flex items-center gap-2">
               <Download size={14} />
-              My Downloads
+              Downloads
             </div>
           </button>
           
@@ -198,7 +198,7 @@ export default function Profile() {
         {activeTab === "recent" && (
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-lg text-white">Recently Viewed</h3>
+              <h3 className="font-bold text-lg text-white">Recent</h3>
               {recentHistory.length > 0 && (
                 <button
                   type="button"
@@ -253,7 +253,7 @@ export default function Profile() {
         {activeTab === "downloads" && (
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-lg text-white">My Downloads</h3>
+              <h3 className="font-bold text-lg text-white">Downloads</h3>
               {downloadHistory.length > 0 && (
                 <button
                   type="button"

@@ -29,7 +29,7 @@ export default function Admin() {
   // Search, Filter, Sort states for Approved Materials
   const [searchQuery, setSearchQuery] = useState("");
   const [filterSubject, setFilterSubject] = useState("All");
-  const [sortBy, setSortBy] = useState("newest");
+  const [sortBy, setSortBy] = useState("title");
   
   const [newSubject, setNewSubject] = useState({
     name: "",
@@ -121,7 +121,7 @@ export default function Admin() {
     })
     .sort((a, b) => {
       // Sort logic
-      if (sortBy === "newest") {
+      if (sortBy === "title") {
         const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || a.date || Date.now());
         const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || b.date || Date.now());
         return dateB - dateA; // Newest first
@@ -611,7 +611,7 @@ export default function Admin() {
                       onChange={(e) => setSortBy(e.target.value)}
                       className="glass-card px-4 py-2 rounded-xl border border-white/10 bg-white/5 text-white focus:border-blue-500 focus:outline-none text-sm"
                     >
-                      <option value="newest" className="bg-[#0a0a0a]">Newest First</option>
+                      <option value="title" className="bg-[#0a0a0a]">Newest First</option>
                       <option value="oldest" className="bg-[#0a0a0a]">Oldest First</option>
                       <option value="most_views" className="bg-[#0a0a0a]">Most Views</option>
                     </select>
@@ -1395,3 +1395,7 @@ export default function Admin() {
     </>
   );
 }
+
+
+
+
