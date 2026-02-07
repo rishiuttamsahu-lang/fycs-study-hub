@@ -1,8 +1,9 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "./firebase";
+import { Sparkles } from "lucide-react";
 
 import { useApp } from "./context/AppContext";
 import Navbar from "./components/Navbar";
@@ -51,7 +52,7 @@ function App() {
     
     checkBanStatus();
   }, [user?.uid]);
-  
+
   // Loading state
   if (loading || userDataLoading) {
     return (
@@ -60,17 +61,17 @@ function App() {
       </div>
     );
   }
-  
+
   // Show banned page if user is banned
   if (user && isUserBanned) {
     return <BannedPage />;
   }
-  
+
   // Not logged in
   if (!user) {
     return <Login />;
   }
-  
+
   // Logged in - return the router with all routes
   return (
     <>
@@ -93,7 +94,7 @@ function App() {
           }
         }
       />
-      <div className="bg-[#0a0a0a] text-white pb-24">
+      <div className="bg-[#0a0a0a] text-white pb-24 relative">
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/semester/:semId" element={<Subjects />} />
@@ -106,7 +107,33 @@ function App() {
       </Routes>
 
       <Navbar />
+      
+      {/* Floating AI Assistant Button */}
+      <FloatingAIButton />
     </div>
+    </>
+  );
+}
+
+function FloatingAIButton() {
+  const location = useLocation();
+  
+  // Define allowed paths
+  const showAiButton = ['/', '/library', '/profile'].includes(location.pathname);
+  
+  return (
+    <>
+      {showAiButton && (
+        <a 
+          href="https://gemini.google.com/gem/1JHlpI3d5_BQzSBmYUykQe9Zz0ZtMmRIF?usp=sharing" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="fixed bottom-24 right-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white p-4 rounded-full shadow-lg z-50 hover:scale-105 transition-transform duration-200 flex items-center gap-2"
+        >
+          <Sparkles size={20} />
+          <span className="hidden sm:inline font-medium text-sm">Assignment AI</span>
+        </a>
+      )}
     </>
   );
 }
