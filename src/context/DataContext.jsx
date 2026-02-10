@@ -1,6 +1,6 @@
 import { createContext, useContext, useState } from 'react';
 import { db } from '../firebase'; 
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
 
 const DataContext = createContext();
 
@@ -43,14 +43,27 @@ export const DataProvider = ({ children }) => {
         alert("⚠️ Database Connected but NO Data Found! Check Collection Name in Firebase Console.");
       }
 
-      // 4. Set Library Data (No Filter, Just Show It)
-      setLibraryMaterials(allDocs);
+      // FILTER AND SORT APPROVED MATERIALS
+      const approved = allDocs.filter(m => m.status?.toLowerCase() === 'approved');
+      
+      // CRITICAL STEP: Sort by date descending (Newest first)
+      const sortedByDate = approved.sort((a, b) => {
+        const dateA = a.createdAt?.seconds || a.createdAt || 0;
+        const dateB = b.createdAt?.seconds || b.createdAt || 0;
+        return dateB - dateA; // Descending (Newest first)
+      });
+
+      console.log(`📊 APPROVED MATERIALS: ${approved.length} items`);
+      console.log(`📈 SORTED BY DATE: Newest first`);
+
+      // 4. Set Library Data (Sorted by date - newest first)
+      setLibraryMaterials(sortedByDate);
       setIsLibraryLoaded(true);
 
-      // 5. Set Home Data
+      // 5. Set Home Data (Top 4 newest items)
       setHomeData({ 
         subjects: [], // Fetching subjects below
-        recents: allDocs.slice(0, 5) 
+        recents: sortedByDate.slice(0, 4) 
       });
 
       // 6. Fetch Subjects (Since we know this works)

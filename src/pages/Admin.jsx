@@ -1,4 +1,4 @@
-import { BarChart2, Book, CheckCircle, Clock, Code, Download, Edit3, Eye, FileText, Pen, Pencil, Plus, Search, Settings, Shield, Star, Trash2, Upload, User, XCircle, AlertTriangle } from "lucide-react";
+import { BarChart2, Book, CheckCircle, Clock, Code, Download, Edit3, Eye, FileText, Pen, Pencil, Plus, Search, Settings, Shield, Star, Trash2, Upload, User, XCircle, AlertTriangle, ArrowUpDown } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
@@ -33,6 +33,7 @@ export default function Admin() {
   const [filterSubject, setFilterSubject] = useState("All");
   const [filterType, setFilterType] = useState("All");
   const [filterSem, setFilterSem] = useState("All");
+  const [sortOrder, setSortOrder] = useState('newest'); // Options: 'newest', 'oldest', 'a-z'
   const [newSubject, setNewSubject] = useState({
     name: "",
     semesterId: "1",
@@ -106,7 +107,7 @@ export default function Admin() {
   // Get unique subjects for filter dropdown
   const uniqueSubjects = [...new Set(materials.filter(m => m.status === 'Approved').map(m => m.subjectId))];
   
-  // Filter and sort approved materials (always A-Z by title)
+  // Filter and sort approved materials
   const filteredMaterials = getApprovedMaterials()
     .filter(material => {
       if (searchQuery && !material.title?.toLowerCase().includes(searchQuery.toLowerCase())) return false;
@@ -115,7 +116,32 @@ export default function Admin() {
       if (filterSubject !== "All" && material.subjectId !== filterSubject) return false;
       return true;
     })
-    .sort((a, b) => (a.title || "").localeCompare(b.title || "", undefined, { sensitivity: "base" }));
+    .sort((a, b) => {
+      // Apply sorting based on sortOrder state
+      switch (sortOrder) {
+        case 'newest':
+          // Sort by createdAt descending (newest first)
+          const dateA = a.createdAt?.seconds || a.createdAt || 0;
+          const dateB = b.createdAt?.seconds || b.createdAt || 0;
+          return dateB - dateA;
+        case 'oldest':
+          // Sort by createdAt ascending (oldest first)
+          const dateA2 = a.createdAt?.seconds || a.createdAt || 0;
+          const dateB2 = b.createdAt?.seconds || b.createdAt || 0;
+          return dateA2 - dateB2;
+        case 'a-z':
+          // Sort by title alphabetically (A-Z)
+          return (a.title || "").localeCompare(b.title || "", undefined, { sensitivity: "base" });
+        case 'z-a':
+          // Sort by title reverse alphabetically (Z-A)
+          return (b.title || "").localeCompare(a.title || "", undefined, { sensitivity: "base" });
+        default:
+          // Default to newest
+          const dateA3 = a.createdAt?.seconds || a.createdAt || 0;
+          const dateB3 = b.createdAt?.seconds || b.createdAt || 0;
+          return dateB3 - dateA3;
+      }
+    });
   
   // Format numbers
   const formatNumber = (num) => {
@@ -555,9 +581,9 @@ export default function Admin() {
                 
                 {/* Search, Filter, Sort Control Bar - Only show for Approved materials */}
                 {materialFilter === "Approved" && (
-                  <div className="relative grid grid-cols-2 md:grid-cols-4 gap-3 mb-4" style={{ position: 'relative', zIndex: 9999 }}>
+                  <div className="relative grid grid-cols-2 md:grid-cols-5 gap-3 mb-4" style={{ position: 'relative', zIndex: 9999 }}>
                     {/* Search - full width on first row */}
-                    <div className="relative col-span-2 md:col-span-4">
+                    <div className="relative col-span-2 md:col-span-5">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <Search size={16} className="text-white/50" />
                       </div>
@@ -607,6 +633,17 @@ export default function Admin() {
                           </option>
                         );
                       })}
+                    </select>
+                    {/* Sort Dropdown - 4th item in the filter row */}
+                    <select
+                      value={sortOrder}
+                      onChange={(e) => setSortOrder(e.target.value)}
+                      className="glass-card px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-white focus:border-blue-500 focus:outline-none text-sm"
+                    >
+                      <option value="newest" className="bg-[#0a0a0a]">Sort: Newest</option>
+                      <option value="oldest" className="bg-[#0a0a0a]">Sort: Oldest</option>
+                      <option value="a-z" className="bg-[#0a0a0a]">Sort: A-Z</option>
+                      <option value="z-a" className="bg-[#0a0a0a]">Sort: Z-A</option>
                     </select>
                   </div>
                 )}
