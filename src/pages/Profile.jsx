@@ -11,6 +11,7 @@ export default function Profile() {
   const [downloadHistory, setDownloadHistory] = useState([]);
   const [activeTab, setActiveTab] = useState("recent"); // "recent" | "downloads" | "settings"
   const [showClearModal, setShowClearModal] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   
   // Edit Profile states
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -135,13 +136,7 @@ export default function Profile() {
           
           <button
             type="button"
-            onClick={async () => {
-              try {
-                await logout();
-              } catch (error) {
-                console.error('Logout error:', error);
-              }
-            }}
+            onClick={() => setShowLogoutConfirm(true)}
             className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
           >
             <LogOut size={16} />
@@ -437,6 +432,42 @@ export default function Profile() {
                   className="flex-1 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-xl transition-all font-bold shadow-lg shadow-purple-500/20"
                 >
                   Yes, Clear All
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-zinc-900 border border-red-500/50 w-full max-w-sm p-6 rounded-2xl shadow-2xl">
+            <div className="text-center">
+              <h3 className="text-xl font-bold text-white mb-2">Log Out?</h3>
+              <p className="text-zinc-400 mb-6">Are you sure you want to log out?</p>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowLogoutConfirm(false)}
+                  className="flex-1 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl transition-all font-medium border border-zinc-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      await logout();
+                      setShowLogoutConfirm(false);
+                    } catch (error) {
+                      console.error('Logout error:', error);
+                      setShowLogoutConfirm(false);
+                    }
+                  }}
+                  className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-all font-bold"
+                >
+                  Yes, Log Out
                 </button>
               </div>
             </div>
