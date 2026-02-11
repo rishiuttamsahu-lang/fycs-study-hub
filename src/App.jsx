@@ -15,6 +15,7 @@ import Library from "./pages/Library";
 import Materials from "./pages/Materials";
 import BannedPage from "./pages/BannedPage";
 
+
 // Lazy load heavy components
 const Admin = lazy(() => import('./pages/Admin'));
 const Profile = lazy(() => import('./pages/Profile'));
@@ -192,6 +193,8 @@ function App() {
       
       {/* Floating AI Assistant Button */}
       <FloatingAIButton />
+      
+
     </div>
     </DataProvider>
   );
@@ -213,7 +216,7 @@ function FloatingAIButton() {
   };
 
   const handleChatGPTClick = () => {
-    window.open("https://chatgpt.com/g/g-6989c41dba348191812205212e4f644c-b-n-n-assignment-bot", "_blank");
+    window.open("https://chatgpt.com/g/g-698c4ec0c6d4819190659b4dff84141e-b-n-n-assignment-bot-pro", "_blank", "noopener,noreferrer");
     closeModal();
   };
 

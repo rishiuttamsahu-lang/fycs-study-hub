@@ -2,8 +2,10 @@ import { User, LogOut, ExternalLink, Clock, Trash2, Settings, Download, X, Spark
 import { useApp } from "../context/AppContext";
 import { useState, useEffect } from "react";
 import { updateProfile } from "firebase/auth";
-import { auth } from "../firebase";
+import { collection, addDoc, getDocs, query, where, serverTimestamp } from 'firebase/firestore';
+import { auth, db } from "../firebase";
 import { toast } from "react-hot-toast";
+import { BiMessageDetail } from 'react-icons/bi';
 
 export default function Profile() {
   const { user, login, logout } = useApp();
@@ -11,12 +13,16 @@ export default function Profile() {
   const [downloadHistory, setDownloadHistory] = useState([]);
   const [activeTab, setActiveTab] = useState("recent"); // "recent" | "downloads" | "settings"
   const [showClearModal, setShowClearModal] = useState(false);
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   
   // Edit Profile states
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editName, setEditName] = useState(user?.displayName || "");
   const [editPhoto, setEditPhoto] = useState(user?.photoURL || "");
+  
+  // Feedback states
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [feedbackMessage, setFeedbackMessage] = useState('');
+  const [isSendingFeedback, setIsSendingFeedback] = useState(false);
   
   // Load both histories on component mount
   useEffect(() => {
@@ -71,6 +77,50 @@ export default function Profile() {
     }
   };
   
+  // Handle feedback submission
+  const handleSendFeedback = async () => {
+    if (!feedbackMessage.trim()) return;
+  
+    setIsSendingFeedback(true);
+  
+    try {
+      // Step 1: Add document to feedbacks collection
+      await addDoc(collection(db, 'feedbacks'), {
+        text: feedbackMessage,
+        createdAt: serverTimestamp(),
+        status: 'unread'
+      });
+  
+      // Step 2: Query the users collection where role == 'admin'
+      const q = query(collection(db, 'users'), where('role', '==', 'admin'));
+      const querySnapshot = await getDocs(q);
+        
+      const adminEmails = [];
+      querySnapshot.forEach((doc) => {
+        const userData = doc.data();
+        if (userData.email) {
+          adminEmails.push(userData.email);
+        }
+      });
+  
+      // Step 3: Join emails with commas. Create mailto link
+      const joinedEmails = adminEmails.join(',');
+      const mailtoLink = `mailto:${joinedEmails}?subject=FYCS Study Hub Feedback&body=${encodeURIComponent(feedbackMessage)}`;
+  
+      // Step 4: Trigger the email
+      window.location.href = mailtoLink;
+  
+      // Close modal, clear state, set isSendingFeedback(false)
+      setIsFeedbackOpen(false);
+      setFeedbackMessage('');
+    } catch (error) {
+      console.error('Error sending feedback:', error);
+      toast.error('Error sending feedback: ' + error.message);
+    } finally {
+      setIsSendingFeedback(false);
+    }
+  };
+    
   // If user is not logged in
   if (!user) {
     return (
@@ -134,14 +184,29 @@ export default function Profile() {
           <h1 className="text-2xl font-bold text-white mb-1">{user.displayName || "User"}</h1>
           <p className="text-white/60 text-sm mb-4">{user.email}</p>
           
-          <button
-            type="button"
-            onClick={() => setShowLogoutConfirm(true)}
-            className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
-          >
-            <LogOut size={16} />
-            Sign Out
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setIsFeedbackOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg transition-colors text-sm font-medium"
+            >
+              <BiMessageDetail />
+              Help & Feedback
+            </button>
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  await logout();
+                } catch (error) {
+                  console.error('Logout error:', error);
+                }
+              }}
+              className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+            >
+              <LogOut size={16} />
+              Sign Out
+            </button>
+          </div>
         </div>
 
         {/* TABBED NAVIGATION - Scrollable */}
@@ -438,36 +503,48 @@ export default function Profile() {
           </div>
         </div>
       )}
-
-      {/* Logout Confirmation Modal */}
-      {showLogoutConfirm && (
+      
+      {/* Feedback Modal */}
+      {isFeedbackOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-zinc-900 border border-red-500/50 w-full max-w-sm p-6 rounded-2xl shadow-2xl">
-            <div className="text-center">
-              <h3 className="text-xl font-bold text-white mb-2">Log Out?</h3>
-              <p className="text-zinc-400 mb-6">Are you sure you want to log out?</p>
-              <div className="flex gap-3">
+          <div className="bg-zinc-900 border border-zinc-700/50 w-full max-w-md p-6 rounded-2xl shadow-2xl relative overflow-hidden">
+            {/* Decorative Background Glow */}
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
+            <div className="flex flex-col gap-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-xl font-bold text-white">Send Feedback</h3>
                 <button
                   type="button"
-                  onClick={() => setShowLogoutConfirm(false)}
-                  className="flex-1 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl transition-all font-medium border border-zinc-700"
+                  onClick={() => setIsFeedbackOpen(false)}
+                  className="text-white/50 hover:text-white transition-colors"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+              
+              <textarea
+                value={feedbackMessage}
+                onChange={(e) => setFeedbackMessage(e.target.value)}
+                placeholder="Enter your feedback here..."
+                className="w-full h-40 p-3 bg-zinc-800 text-white rounded border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-yellow-400 resize-none"
+              />
+              
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsFeedbackOpen(false)}
+                  disabled={isSendingFeedback}
+                  className="flex-1 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl transition-all font-medium border border-zinc-700 disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
-                  onClick={async () => {
-                    try {
-                      await logout();
-                      setShowLogoutConfirm(false);
-                    } catch (error) {
-                      console.error('Logout error:', error);
-                      setShowLogoutConfirm(false);
-                    }
-                  }}
-                  className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-all font-bold"
+                  onClick={handleSendFeedback}
+                  disabled={isSendingFeedback || !feedbackMessage.trim()}
+                  className="flex-1 px-4 py-2.5 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-400 hover:to-yellow-500 text-black rounded-xl transition-all font-bold shadow-lg shadow-yellow-500/20 disabled:opacity-50"
                 >
-                  Yes, Log Out
+                  {isSendingFeedback ? 'Sending...' : 'Send to Admins'}
                 </button>
               </div>
             </div>
