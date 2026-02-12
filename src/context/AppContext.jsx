@@ -102,7 +102,15 @@ export const AppProvider = ({ children }) => {
           id: doc.id,
           ...doc.data()
         }));
-        setUsers(usersList);
+
+        // Sort: Newest timestamp (b) - Oldest timestamp (a)
+        const sortedUsers = usersList.sort((a, b) => {
+          const timeA = a.createdAt?.seconds || 0;
+          const timeB = b.createdAt?.seconds || 0;
+          return timeB - timeA;
+        });
+
+        setUsers(sortedUsers);
       },
       (error) => {
         console.error("Error listening to users: ", error);

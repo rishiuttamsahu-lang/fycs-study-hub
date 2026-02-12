@@ -1,6 +1,8 @@
 import { FileText, ExternalLink, Download, Edit3, Pencil } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { useState } from "react";
+import { doc, updateDoc, increment } from "firebase/firestore";
+import { db } from "../firebase";
 
 export default function MaterialCard({ material, onIncrementView, convertToDownloadLink, navigateToSubject = false, navigate, isNewMaterial, getSubjectById, onEdit }) {
   const { isAdmin } = useApp();
@@ -109,42 +111,65 @@ export default function MaterialCard({ material, onIncrementView, convertToDownl
     localStorage.setItem('downloadHistory', JSON.stringify(updatedHistory));
   };
 
-  const handleViewClick = () => {
+  const handleViewClick = async () => {
     if (navigateToSubject && navigate) {
       // Convert material type to lowercase for URL parameter
       const tabParam = material.type.toLowerCase();
       navigate(`/semester/${material.semId}/${material.subjectId}?tab=${tabParam}`);
     } else {
-      // Add to recent history only
-      addToRecentHistory(material);
-      
-      // Optimistic update: increment view count locally
-      setViewCount(prev => prev + 1);
-      
-      if (onIncrementView) {
-        onIncrementView(material.id);
+      try {
+        // Update database with increment
+        await updateDoc(doc(db, "materials", material.id), { 
+          views: increment(1) 
+        });
+        
+        // Add to recent history
+        addToRecentHistory(material);
+        
+        // Optimistic update: increment view count locally
+        setViewCount(prev => prev + 1);
+        
+        if (onIncrementView) {
+          onIncrementView(material.id);
+        }
+        window.open(material.link, "_blank", "noopener,noreferrer");
+      } catch (error) {
+        console.error("Error updating view count:", error);
+        // Still open the link even if DB update fails
+        window.open(material.link, "_blank", "noopener,noreferrer");
       }
-      window.open(material.link, "_blank", "noopener,noreferrer");
     }
   };
 
-  const handleDownloadClick = () => {
-    // Add to download history only
-    addToDownloadHistory(material);
-    
-    // Optimistic update: increment download count locally
-    setDownloadCount(prev => prev + 1);
-    
-    const downloadUrl = convertToDownloadLink(material.link);
-    
-    // Create a temporary anchor element and trigger download
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    link.setAttribute('download', ''); // Hint to browser to download
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownloadClick = async () => {
+    try {
+      // Update database with increment
+      await updateDoc(doc(db, "materials", material.id), { 
+        downloads: increment(1) 
+      });
+      
+      // Add to download history
+      addToDownloadHistory(material);
+      
+      // Optimistic update: increment download count locally
+      setDownloadCount(prev => prev + 1);
+      
+      const downloadUrl = convertToDownloadLink(material.link);
+      
+      // Create a temporary anchor element and trigger download
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.setAttribute('download', ''); // Hint to browser to download
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Error updating download count:", error);
+      // Still attempt download even if DB update fails
+      const downloadUrl = convertToDownloadLink(material.link);
+      window.open(downloadUrl, "_blank", "noopener,noreferrer");
+    }
   };
 
   return (
@@ -209,11 +234,11 @@ export default function MaterialCard({ material, onIncrementView, convertToDownl
               <div className="flex items-center gap-3">
                 <div className="text-[10px] text-white/55 flex items-center gap-1">
                   <span>👁</span>
-                  <span>{viewCount} views</span>
+                  <span>{material.views || 0} views</span>
                 </div>
                 <div className="text-[10px] text-white/55 flex items-center gap-1">
                   <span>⬇</span>
-                  <span>{downloadCount} downloads</span>
+                  <span>{material.downloads || 0} downloads</span>
                 </div>
                 <div className="text-[10px] text-white/55 flex items-center gap-1">
                   <span>📅</span>
