@@ -1,5 +1,5 @@
 import { BookOpen, Download, FileText, GraduationCap, Layers, Lock, Circle } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import { useData } from "../context/DataContext";
 import { useEffect } from "react";
@@ -207,13 +207,9 @@ const Home = () => {
           <Layers size={14} />
           <span>Materials</span>
         </div>
-        <button
-          type="button"
-          className="text-[11px] font-semibold text-[#FFD700] hover:opacity-90 transition-opacity"
-          onClick={() => navigate("/admin")}
-        >
+        <Link to="/library" className="text-[11px] font-semibold text-[#FFD700] hover:opacity-90 transition-opacity">
           Explore
-        </button>
+        </Link>
       </div>
 
       <div className="space-y-4">

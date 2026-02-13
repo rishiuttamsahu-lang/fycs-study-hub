@@ -220,7 +220,7 @@ export default function MaterialCard({ material, onIncrementView, convertToDownl
           <button
             type="button"
             onClick={handleDownloadClick}
-            className="flex items-center justify-center w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 transition-colors"
+            className="hidden md:flex items-center justify-center w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 transition-colors"
             title="Download"
           >
             <Download size={18} />
