@@ -1,9 +1,10 @@
-import { BarChart2, Book, CheckCircle, Clock, Code, Download, Edit3, Eye, FileText, Pen, Pencil, Plus, Search, Settings, Shield, Star, Trash2, Upload, User, XCircle, AlertTriangle } from "lucide-react";
+import { BarChart2, Book, CheckCircle, Clock, Code, Download, Edit3, Eye, FileText, Flag, Pen, Pencil, Plus, Search, Settings, Shield, Star, Trash2, Upload, User, XCircle, AlertTriangle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import Swal from "sweetalert2";
 import { useApp } from "../context/AppContext";
+import AdminReports from "../components/admin/AdminReports";
 import { doc, updateDoc, deleteDoc, writeBatch, collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
 
@@ -11,6 +12,7 @@ const tabs = [
   { id: "analytics", label: "Analytics", icon: <BarChart2 size={16} /> },
   { id: "subjects", label: "Subjects", icon: <Book size={16} /> },
   { id: "materials", label: "Materials", icon: <FileText size={16} /> },
+  { id: "reports", label: "Reports", icon: <Flag size={16} /> },
   { id: "users", label: "Users", icon: <User size={16} /> },
   { id: "settings", label: "Settings", icon: <Settings size={16} /> },
 ];
@@ -782,6 +784,9 @@ export default function Admin() {
               </div>
             </>
           )}
+
+          {/* Reports Tab */}
+          {activeTab === "reports" && <AdminReports />}
 
           {/* Subjects Tab */}
           {activeTab === "subjects" && (
