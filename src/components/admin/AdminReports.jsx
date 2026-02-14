@@ -164,11 +164,21 @@ export default function AdminReports() {
                 </div>
                 
                 <div className="mt-4">
-                  <div className="mt-3 bg-zinc-800/50 border border-zinc-700/50 rounded-md p-2 flex items-center gap-2 text-sm">
-                    <span className="text-zinc-400">📍 Location:</span>
-                    <span className="text-yellow-400 font-medium">{report.semester || 'N/A'}</span>
-                    <span className="text-zinc-500">➔</span>
-                    <span className="text-white font-medium">{report.subject || 'N/A'}</span>
+                  <div className="mt-3 bg-zinc-800/40 border border-zinc-700/50 rounded-lg p-3">
+                    <div className="flex flex-col sm:flex-row sm:items-start gap-2 text-sm">
+                      <span className="text-zinc-400 flex items-center gap-1 shrink-0 mt-0.5">
+                        📍 Location:
+                      </span>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-yellow-400 font-medium px-2 py-0.5 bg-yellow-400/10 rounded-md whitespace-nowrap">
+                          Sem {report.semester || 'N/A'}
+                        </span>
+                        <span className="text-zinc-500">➔</span>
+                        <span className="text-white font-medium leading-snug">
+                          {report.subject || 'N/A'}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                   <p className="text-xs text-zinc-500 mt-1 italic">
                     * Go to the Materials tab and filter by this semester/subject to edit or delete this file.
